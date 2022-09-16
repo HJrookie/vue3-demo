@@ -30,7 +30,7 @@ const service = axios.create({
 
 // request拦截器
 service.interceptors.request.use(
-  (config) => {
+  (config: AxiosRequestConfig) => {
     // // 是否需要设置 token
     // const isToken = (config.headers || {}).isToken === false;
     // // 是否需要防止数据重复提交
@@ -144,7 +144,7 @@ service.interceptors.response.use(
 );
 
 const downloadService = axios.create({
-  baseURL: process.env.VUE_APP_BASE_API,
+  baseURL: api.baseUrl,
   timeout: 60 * 1000, // request timeout
 });
 

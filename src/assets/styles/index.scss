@@ -189,3 +189,10 @@ aside {
 .multiselect--active {
   z-index: 1000 !important;
 }
+
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0px 1000px white inset;
+}
+.el-input__inner {
+  height: 32px;
+}

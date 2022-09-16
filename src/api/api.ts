@@ -1,7 +1,7 @@
 export let api = {
   "baseUrl": "http://10.103.237.165:8080",
 };
-if (process.env.NODE_ENV === "production") {
+if (import.meta.env.NODE_ENV === "production") {
   // if (process.env.NODE_ENV === 'development') {
   const Http = new XMLHttpRequest();
   Http.open("GET", "/config.json", false);

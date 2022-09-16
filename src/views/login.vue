@@ -4,7 +4,7 @@
       <div class="left-img">
         <div class="titles">
           <div class="title">Welcome!</div>
-          <div class="subTitle">第三届海河工匠杯</div>
+          <div class="subTitle"></div>
         </div>
       </div>
       <div class="right-form">
@@ -12,11 +12,14 @@
           <img src="../assets/images/logo.png" width="300" />
         </div>
 
-        <el-form :model="loginForm" :rules="loginRules" ref="loginFormRef" class="form" hide-required-asterisk status-icon>
+        <el-form :model="loginForm" :rules="loginRules" ref="loginFormRef" class="form" hide-required-asterisk>
           <el-form-item prop="username">
             <!--            <span slot="label"><i class="el-icon-user"></i></span>-->
             <el-input ref="username" v-model="loginForm.username" placeholder="请输入账号" name="username" type="text" tabindex="1" autocomplete="off">
-              <i class="el-icon-user" slot="prefix"></i>
+              <!-- <i class="el-icon-user" slot="prefix"></i> -->
+              <template #prefix>
+                <el-icon><UserFilled /></el-icon>
+              </template>
             </el-input>
           </el-form-item>
           <el-form-item prop="password">
@@ -30,7 +33,7 @@
               autocomplete="off"
               @keyup.enter.native="submitForm(loginFormRef)"
             >
-              <svg-icon icon-class="password" slot="prefix" />
+              <template #prefix> <svg-icon name="password"> </svg-icon> </template>
             </el-input>
           </el-form-item>
 
@@ -38,7 +41,8 @@
             <el-col :span="16">
               <el-form-item prop="code" class="mb15">
                 <el-input v-model="loginForm.code" placeholder="请输入验证码" @keyup.native.enter="submitForm(loginFormRef)">
-                  <svg-icon icon-class="verifyCode" slot="prefix" />
+                  <!-- <svg-icon icon-class="verifyCode" slot="prefix" /> -->
+                  <template #prefix> <svg-icon name="verifyCode"> </svg-icon> </template>
                 </el-input>
               </el-form-item>
             </el-col>
@@ -60,7 +64,7 @@
               <el-row>
                 <!-- <el-button type="text" @click.prevent="institutionalRegister" class="reg1">单位注册</el-button> -->
                 <!--                <span style="color: #1890ff">/</span>-->
-                <svg-icon icon-class="jiange"></svg-icon>
+                <!-- <svg-icon icon-class="jiange"></svg-icon> -->
                 <!-- <el-button type="text" @click.prevent="individualRegister" class="reg2">个人注册</el-button> -->
               </el-row>
             </el-col>
@@ -78,23 +82,30 @@
 <script lang="ts" setup>
 import { reactive, ref, onMounted } from "vue";
 import type { FormInstance, FormRules } from "element-plus";
-import { getCodeImg } from "@/api/login";
+import { getCodeImg, login } from "@/api/login";
 import md5 from "js-md5";
+import { setToken } from "@/utils/auth";
+import { useRouter, useRoute } from "vue-router";
+import { Calendar, UserFilled } from "@element-plus/icons-vue";
 
+const router = useRouter();
+const route = useRoute();
 const loginForm = reactive({
   username: "",
   password: "", //
   uuid: "",
   code: "",
 });
-
 const loginFormRef = ref<FormInstance>();
 const codeUrl = ref("");
 let loading = ref(false);
 
-const getCode = () => {
+const getCode = async () => {
+  // const res = await getCodeImg();
+  // console.log(2,res.img)
+
   getCodeImg().then((res) => {
-    codeUrl.value = res.img;
+    codeUrl.value = res?.img;
     loginForm.uuid = res.uuid;
   });
 };
@@ -114,31 +125,56 @@ const submitForm = async (formEl: FormInstance | undefined) => {
     if (valid) {
       console.log("submit!");
       loading.value = true;
-          const data = {
-            loginForm,
-            password: md5(loginForm.password.trim()),
-          };
-          
-          // this.$store
-          //   .dispatch("Login", data)
-          //   .then((data) => {
-          //     this.loading = false;
-          //     console.log("info", data);
-          //     // if (!data) {
-          //     //   return this.$message.error("账号或密码错误");
-          //     // }
-          //     // this.$router.push("/dashboard");
-          //     this.$router.push({ path: "/" }).catch(() => {});
-          //     // this.$router.push({ path: this.redirect || "/" }).catch(() => {});
-          //     this.getCode();
-          //   })
-          //   .catch((err) => {
-          //     // console.log("error", err, err === "验证码错误", typeof err, JSON.stringify(err), Object.prototype.toString.call(err), err.valueOf());
-          //     this.loginForm.code = "";
+      const data = {
+        ...loginForm,
+        password: md5(loginForm.password.trim()),
+      };
 
-          //     this.loading = false;
-          //     this.getCode();
-          //   });
+      const username = data.username.trim();
+      const password = data.password;
+      const code = data.code;
+      const uuid = data.uuid;
+
+      login(username, password, code, uuid)
+        .then((res) => {
+          setToken(res?.token);
+          loading.value = false;
+          // if (!data) {
+          //   return this.$message.error("账号或密码错误");
+          // }
+          // this.$router.push("/dashboard");
+          // this.$router.push({ path: "/" }).catch(() => {});
+          // this.$router.push({ path: this.redirect || "/" }).catch(() => {});
+
+          getCode();
+        })
+        .catch((err) => {
+          // console.log("error", err, err === "验证码错误", typeof err, JSON.stringify(err), Object.prototype.toString.call(err), err.valueOf());
+          loginForm.code = "";
+          loading.value = false;
+          getCode();
+        });
+
+      // this.$store
+      //   .dispatch("Login", data)
+      //   .then((data) => {
+      //     this.loading = false;
+      //     console.log("info", data);
+      //     // if (!data) {
+      //     //   return this.$message.error("账号或密码错误");
+      //     // }
+      //     // this.$router.push("/dashboard");
+      //     this.$router.push({ path: "/" }).catch(() => {});
+      //     // this.$router.push({ path: this.redirect || "/" }).catch(() => {});
+      //     this.getCode();
+      //   })
+      //   .catch((err) => {
+      //     // console.log("error", err, err === "验证码错误", typeof err, JSON.stringify(err), Object.prototype.toString.call(err), err.valueOf());
+      //     this.loginForm.code = "";
+
+      //     this.loading = false;
+      //     this.getCode();
+      //   });
     } else {
       console.log("error submit!", fields);
     }

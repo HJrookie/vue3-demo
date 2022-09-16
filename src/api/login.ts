@@ -1,8 +1,9 @@
-import { CommonObj } from "@/type";
+import { CommonObj, CommonResponseType, HttpResponse } from "@/type";
 import request from "@/utils/request";
+import { AxiosPromise, AxiosRequestConfig, AxiosResponse, AxiosResponseHeaders } from "axios";
 
 // 登录方法
-export function login(username: string, password: string, code: string, uuid: string) {
+export function login(username: string, password: string, code: string, uuid: string): HttpResponse<CommonObj> {
   const data = {
     username,
     password,
@@ -48,7 +49,7 @@ export function logout() {
 }
 
 // 获取验证码
-export function getCodeImg() {
+export function getCodeImg(): HttpResponse<CommonObj> {
   return request({
     url: "/captchaImage",
     headers: {
